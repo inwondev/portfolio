@@ -795,7 +795,7 @@
       <div class="skill-item">
         <div class="skill-dot" style="background:#6B8299"></div>
         <div class="skill-name">MaxGauge</div>
-        <div class="skill-detail">SQLServer용<br>세션·대기 분석</div>
+        <div class="skill-detail">이기종 DBMS<br>세션·대기 분석</div>
       </div>
       <div class="skill-item">
         <div class="skill-dot" style="background:#6B8299"></div>
@@ -876,12 +876,12 @@
             <button class="query-tab-btn active" onclick="switchTab(this,'q01-before')">BEFORE</button>
             <button class="query-tab-btn" onclick="switchTab(this,'q01-after')">AFTER (Index)</button>
           </div>
-          <div id="q01-before" class="query-pane active"><span class="cm">-- Clustered Index만 존재 → Key Lookup 반복 발생</span>
+          <div id="q01-before" class="query-pane active"><span class="cm">-- Clustered Index만 존재 → Key Lookup 반복 발생</span><br>
 <span class="kw">SELECT</span> <span class="col">order_id</span>, <span class="col">product_cd</span>, <span class="col">qty</span>, <span class="col">amount</span>
 <span class="kw">FROM</span>  <span class="tbl">TBL_ORDER</span>
 <span class="kw">WHERE</span> <span class="col">order_dt</span> <span class="kw">BETWEEN</span> <span class="str">'20240101'</span> <span class="kw">AND</span> <span class="str">'20240131'</span>
 <span class="cm">-- → Clustered Index Seek + Key Lookup × 수십만 건</span></div>
-          <div id="q01-after" class="query-pane"><span class="cm">-- Nonclustered Index: 선행키 order_dt + INCLUDE 컬럼</span>
+          <div id="q01-after" class="query-pane"><span class="cm">-- Nonclustered Index: 선행키 order_dt + INCLUDE 컬럼</span><br>
 <span class="kw">CREATE NONCLUSTERED INDEX</span> <span class="fn">IX_ORDER_DT</span>
   <span class="kw">ON</span> <span class="tbl">TBL_ORDER</span> (<span class="col">order_dt</span>)
   <span class="kw">INCLUDE</span> (<span class="col">order_id</span>, <span class="col">product_cd</span>, <span class="col">qty</span>, <span class="col">amount</span>);
@@ -917,7 +917,7 @@
             <button class="query-tab-btn active" onclick="switchTab(this,'q02-before')">BEFORE (Cursor)</button>
             <button class="query-tab-btn" onclick="switchTab(this,'q02-after')">AFTER (Set 기반)</button>
           </div>
-          <div id="q02-before" class="query-pane active"><span class="cm">-- 행 단위 반복 처리 → 건수 비례 I/O·CPU 선형 증가</span>
+          <div id="q02-before" class="query-pane active"><span class="cm">-- 행 단위 반복 처리 → 건수 비례 I/O·CPU 선형 증가</span><br>
 <span class="kw">DECLARE</span> <span class="col">@id</span> <span class="kw">INT</span>, <span class="col">@status</span> <span class="kw">VARCHAR</span>(<span class="num">10</span>)
 <span class="kw">DECLARE</span> <span class="fn">cur</span> <span class="kw">CURSOR FOR</span>
   <span class="kw">SELECT</span> <span class="col">user_id</span>, <span class="col">status</span> <span class="kw">FROM</span> <span class="tbl">TBL_USER</span> <span class="kw">WHERE</span> <span class="col">reg_dt</span> = <span class="fn">GETDATE</span>()
@@ -929,7 +929,7 @@
   <span class="kw">FETCH NEXT FROM</span> <span class="fn">cur</span> <span class="kw">INTO</span> <span class="col">@id</span>, <span class="col">@status</span>
 <span class="kw">END</span>
 <span class="kw">CLOSE</span> <span class="fn">cur</span>; <span class="kw">DEALLOCATE</span> <span class="fn">cur</span></div>
-          <div id="q02-after" class="query-pane"><span class="cm">-- Set 기반: 단일 UPDATE로 일괄 처리</span>
+          <div id="q02-after" class="query-pane"><span class="cm">-- Set 기반: 단일 UPDATE로 일괄 처리</span><br>
 <span class="kw">UPDATE</span> <span class="tbl">H</span>
 <span class="kw">SET</span>    <span class="tbl">H</span>.<span class="col">status</span> = <span class="tbl">U</span>.<span class="col">status</span>
 <span class="kw">FROM</span>   <span class="tbl">TBL_HISTORY</span> <span class="tbl">H</span>
@@ -969,13 +969,13 @@
             <button class="query-tab-btn active" onclick="switchTab(this,'q03-before')">BEFORE</button>
             <button class="query-tab-btn" onclick="switchTab(this,'q03-after')">AFTER</button>
           </div>
-          <div id="q03-before" class="query-pane active"><span class="cm">-- SELECT 절 미사용 테이블이 LEFT JOIN에 포함됨</span>
+          <div id="q03-before" class="query-pane active"><span class="cm">-- SELECT 절 미사용 테이블이 LEFT JOIN에 포함됨</span><br>
 <span class="kw">SELECT</span> <span class="tbl">S</span>.<span class="col">sale_id</span>, <span class="tbl">S</span>.<span class="col">amount</span>, <span class="tbl">S</span>.<span class="col">sale_dt</span>
 <span class="kw">FROM</span>   <span class="tbl">TBL_SALE</span> <span class="tbl">S</span>
 <span class="kw">LEFT JOIN</span> <span class="tbl">TBL_CODE</span> <span class="tbl">C</span>  <span class="cm">-- SELECT·WHERE 미사용, PK Join</span>
   <span class="kw">ON</span> <span class="tbl">S</span>.<span class="col">code_id</span> = <span class="tbl">C</span>.<span class="col">code_id</span>
 <span class="kw">WHERE</span>  <span class="tbl">S</span>.<span class="col">sale_dt</span> >= <span class="str">'20240101'</span></div>
-          <div id="q03-after" class="query-pane"><span class="cm">-- Join 제거: PK Join + 결과 영향 없음 검증 후 적용</span>
+          <div id="q03-after" class="query-pane"><span class="cm">-- Join 제거: PK Join + 결과 영향 없음 검증 후 적용</span><br>
 <span class="kw">SELECT</span> <span class="tbl">S</span>.<span class="col">sale_id</span>, <span class="tbl">S</span>.<span class="col">amount</span>, <span class="tbl">S</span>.<span class="col">sale_dt</span>
 <span class="kw">FROM</span>   <span class="tbl">TBL_SALE</span> <span class="tbl">S</span>
 <span class="kw">WHERE</span>  <span class="tbl">S</span>.<span class="col">sale_dt</span> >= <span class="str">'20240101'</span>
