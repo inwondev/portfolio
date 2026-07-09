@@ -114,13 +114,13 @@
   }
   .stat-num {
     font-family: 'Courier New', 'Malgun Gothic', '맑은 고딕', monospace;
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 700;
     color: var(--green);
     display: block;
   }
   .stat-label {
-    font-size: 11px;
+    font-size: 12px;
     color: #8AAFC8;
     letter-spacing: 1px;
   }
@@ -739,8 +739,8 @@
         <span class="stat-label">직접 수행한 튜닝 개선율</span>
       </div>
       <div class="stat-card">
-        <span class="stat-num">금융권</span>
-        <span class="stat-label">포함 다수 고객사 운영 경험</span>
+        <span class="stat-num">20+</span>
+        <span class="stat-label">금융권 포함 다수 고객사 환경 경험</span>
       </div>
     </div>
   </div>
@@ -853,11 +853,17 @@
         <div class="why-grid">
           <div class="why-box problem">
             <div class="why-label red">⚠ 왜 문제라 판단했나</div>
-            UNION ALL로 동일 테이블 3회 참조 쿼리에서 Actual Plan 확인 시 매 실행마다 Key Lookup이 수십만 건 발생. Clustered Index만 존재해 조건절 컬럼 조회 후 데이터 페이지를 별도 탐색하는 구조가 I/O 폭증의 직접 원인이라 판단.
+            - UNION ALL로 동일 테이블 3회 참조 쿼리에서 Actual Plan 확인 시 매 실행마다 Key Lookup이 수십만 건 발생 <br>
+            - Clustered Index만 존재해 조건절 컬럼 조회 후 데이터 페이지를 별도 탐색하는 구조가 I/O 폭증의 직접 원인이라 판단
           </div>
           <div class="why-box choice">
             <div class="why-label green">✓ 왜 이 방법을 선택했나</div>
-            Key Lookup 제거에는 ① Clustered Key 변경, ② Nonclustered + INCLUDE 두 가지 선택지가 있었음. 운영 중 Clustered Key 변경은 리스크가 크므로 INCLUDE 절로 SELECT 컬럼을 커버링하는 Nonclustered Index를 설계. 선행 키는 조건절 중 선택도가 가장 높은 [REQDT]로 선정.
+            * Key Lookup 제거에는 <br>
+            ① Clustered Key 변경, <br>
+            ② Nonclustered + INCLUDE <br>
+            두 가지 선택지가 있었음 <br>
+            - 운영 중 Clustered Key 변경은 리스크가 크므로 INCLUDE 절로 SELECT 컬럼을 커버링하는 Nonclustered Index를 설계 <br>
+            - 선행 키는 조건절 중 선택도가 가장 높은 [REQDT]로 선정
           </div>
         </div>
         <div class="tuning-result">
@@ -890,11 +896,15 @@
         <div class="why-grid">
           <div class="why-box problem">
             <div class="why-label red">⚠ 왜 문제라 판단했나</div>
-            실행 계획에서 루프 반복 횟수가 처리 건수와 1:1로 증가하는 것을 확인. Cursor는 건당 UPDATE를 개별 실행하므로 데이터 증가 시 I/O·CPU가 선형으로 증가하는 구조적 문제. 부하 시간대와 Cursor 수행 시간이 정확히 일치하는 것으로 원인 특정.
+            - 실행 계획에서 루프 반복 횟수가 처리 건수와 1:1로 증가하는 것을 확인<br>
+            - Cursor는 건당 UPDATE를 개별 실행하므로 데이터 증가 시 I/O·CPU가 선형으로 증가하는 구조적 문제<br>
+            - 부하 시간대와 Cursor 수행 시간이 정확히 일치하는 것으로 원인 특정
           </div>
           <div class="why-box choice">
             <div class="why-label green">✓ 왜 이 방법을 선택했나</div>
-            Cursor 내 로직이 조건 분기 없이 단순 UPDATE임을 확인. JOIN 기반 Set 처리로 완전 대체 가능한 구조였기 때문에 재작성 선택. 변환 전후 결과 건수·값을 검증하여 정합성 확인 후 운영 적용.
+            - Cursor 내 로직이 조건 분기 없이 단순 UPDATE임을 확인<br>
+            - JOIN 기반 Set 처리로 완전 대체 가능한 구조였기 때문에 재작성 선택<br>
+            - 변환 전후 결과 건수·값을 검증하여 정합성 확인 후 운영 적용
           </div>
         </div>
         <div class="tuning-result">
@@ -936,11 +946,17 @@
         <div class="why-grid">
           <div class="why-box problem">
             <div class="why-label red">⚠ 왜 문제라 판단했나</div>
-            실행 계획에서 TBL_CODE 테이블 Join 비용이 전체 I/O의 상당 부분을 차지하는 것을 확인. SELECT 절 전체를 검토한 결과 해당 테이블의 어떤 컬럼도 최종 결과에 사용되지 않음을 발견. 불필요한 Join이 매 실행마다 추가 I/O를 발생시키는 구조적 낭비로 판단.
+            - 실행 계획에서 TBL_CODE 테이블 Join 비용이 전체 I/O의 상당 부분을 차지하는 것을 확인<br>
+            - SELECT 절 전체를 검토한 결과 해당 테이블의 어떤 컬럼도 최종 결과에 사용되지 않음을 발견<br>
+            - 불필요한 Join이 매 실행마다 추가 I/O를 발생시키는 구조적 낭비로 판단
           </div>
           <div class="why-box choice">
             <div class="why-label green">✓ 왜 이 방법을 선택했나</div>
-            Join 제거 시 결과에 영향이 없으려면 두 가지를 확인해야 함: ① 조인 키가 PK여서 중복 행 발생 없음, ② WHERE절에서도 해당 테이블 미사용. 두 조건 모두 만족함을 검증 후 안전하게 제거. 로직 변경 없이 성능 개선 가능한 가장 확실한 방법.
+            * Join 제거 시 결과에 영향이 없으려면 두 가지를 확인해야 함<br> 
+            ① 조인 키가 PK여서 중복 행 발생 없음 <br>
+            ② WHERE절에서도 해당 테이블 미사용<br>
+            - 두 조건 모두 만족함을 검증 후 안전하게 제거<br>
+            - 로직 변경 없이 성능 개선 가능한 가장 확실한 방법
           </div>
         </div>
         <div class="tuning-result">
@@ -973,11 +989,15 @@
         <div class="why-grid">
           <div class="why-box problem">
             <div class="why-label red">⚠ 왜 문제라 판단했나</div>
-            실행 계획에서 동일 테이블(ZASCMT0060)이 조인마다 Full Scan 반복 발생. 해당 테이블에 인덱스가 없어 매번 전체 데이터를 읽는 구조. 추가로 같은 테이블을 2회씩 중복 조인하고 있어 불필요한 I/O가 배로 발생하고 있었음.
+            - 실행 계획에서 동일 테이블이 조인마다 Full Scan 반복 발생<br>
+            - 해당 테이블에 인덱스가 없어 매번 전체 데이터를 읽는 구조<br>
+            - 추가로 같은 테이블을 2회씩 중복 조인하고 있어 불필요한 I/O가 배로 발생하고 있었음
           </div>
           <div class="why-box choice">
             <div class="why-label green">✓ 왜 이 방법을 선택했나</div>
-            문제가 두 개(인덱스 부재 + 중복 Join)였기 때문에 각각 단계별로 효과를 측정한 뒤 함께 적용. 인덱스만 생성하면 중복 Join 비용이 남고, 중복 Join만 제거하면 Full Scan이 남음. 두 가지를 함께 해결해야 완전한 개선이 가능하다고 판단.
+            - 문제가 두 개(인덱스 부재 + 중복 Join)였기 때문에 각각 단계별로 효과를 측정한 뒤 함께 적용<br>
+            - 인덱스만 생성하면 중복 Join 비용이 남고, 중복 Join만 제거하면 Full Scan이 남음<br>
+            - 두 가지를 함께 해결해야 완전한 개선이 가능하다고 판단
           </div>
         </div>
         <div class="tuning-result">
@@ -992,11 +1012,14 @@
         <div class="why-grid">
           <div class="why-box problem">
             <div class="why-label red">⚠ 왜 문제라 판단했나</div>
-            로그 백업과 ALTER INDEX REBUILD(maxdop=8)가 동일 시간대에 수행되며 CPU 100% 도달. Actual Plan에서 병렬 처리 스레드가 과다 할당된 것을 확인. 두 작업이 CPU 자원을 동시에 최대로 사용하는 구조적 충돌이 원인.
+            - 로그 백업과 ALTER INDEX REBUILD(maxdop=8)가 동일 시간대에 수행되며 CPU 100% 도달<br>
+            - Actual Plan에서 병렬 처리 스레드가 과다 할당된 것을 확인<br>
+            - 두 작업이 CPU 자원을 동시에 최대로 사용하는 구조적 충돌이 원인
           </div>
           <div class="why-box choice">
             <div class="why-label green">✓ 왜 이 방법을 선택했나</div>
-            즉각적인 해결로 MAXDOP 조정 검토와 작업 시간대 분리 두 가지를 선택. MAXDOP 변경은 다른 쿼리에 영향을 줄 수 있어 신중히 검토하고, 근본 해결책으로 배치 작업을 서비스 peak 외 새벽 시간대로 이동하는 정책 수립.
+            - 즉각적인 해결로 MAXDOP 조정 검토와 작업 시간대 분리 두 가지를 선택<br>
+            - MAXDOP 변경은 다른 쿼리에 영향을 줄 수 있어 신중히 검토하고, 근본 해결책으로 배치 작업을 서비스 peak 외 새벽 시간대로 이동하는 정책 수립
           </div>
         </div>
         <div class="tuning-result">
@@ -1012,11 +1035,15 @@
         <div class="why-grid">
           <div class="why-box problem">
             <div class="why-label red">⚠ 왜 문제라 판단했나</div>
-            트랜잭션 로그 파일이 지속적으로 증가하는 것을 모니터링에서 감지. 백업 히스토리 조회 결과 Log Backup이 전혀 수행되지 않고 있었음. MSSQL Full Recovery Model에서 Log Backup 없이는 로그가 재사용되지 않아 무한 증가하는 구조적 문제.
+            - 트랜잭션 로그 파일이 지속적으로 증가하는 것을 모니터링에서 감지<br> 
+            - 백업 히스토리 조회 결과 Log Backup이 전혀 수행되지 않고 있었음<br>
+            - MSSQL Full Recovery Model에서 Log Backup 없이는 로그가 재사용되지 않아 무한 증가하는 구조적 문제
           </div>
           <div class="why-box choice">
             <div class="why-label green">✓ 왜 이 방법을 선택했나</div>
-            Log Backup 도입이 유일한 근본 해결책. 단순 로그 축소(SHRINK)는 임시방편이고 재증가가 반복됨. Full Backup 빈도도 업무 시간대 다회 수행 중이어서 함께 개선. Full Backup 새벽 1회 + Log Backup 1시간 주기로 정책 수립 후 적용.
+            - 단순 로그 축소(SHRINK)는 임시방편이고 재증가가 반복됨<br>
+            - Full Backup 빈도도 업무 시간대 다회 수행 중이어서 함께 개선<br>
+            - Full Backup 새벽 1회 + Log Backup 1시간 주기로 정책 수립 후 적용
           </div>
         </div>
         <div class="tuning-result">
@@ -1169,11 +1196,17 @@
           <div class="incident-why">
             <div class="incident-why-box trigger">
               <div class="incident-why-label red">⚠ 왜 이게 문제라 판단했나</div>
-              평상시 0건이던 LOG_MANAGER 대기가 특정 시간대에 534,663건 급증. 시간대를 추적하니 tempDB 로그 파일 자동 증가 이벤트와 정확히 일치. 파일 증가 중 잠금이 유지되어 다른 세션이 대기하는 구조적 문제.
+              - 평상시 0건이던 LOG_MANAGER 대기가 특정 시간대에 534,663건 급증<br>
+              - 시간대를 추적하니 tempDB 로그 파일 자동 증가 이벤트와 정확히 일치<br>
+              - 파일 증가 중 잠금이 유지되어 다른 세션이 대기하는 구조적 문제<br>
+                  <br>
+                  <br>
             </div>
             <div class="incident-why-box action">
               <div class="incident-why-label green">✓ 왜 이 방법으로 해결했나</div>
-              자동 증가 자체를 막는 것은 불가능. 증가 빈도를 0으로 만드는 것이 목표. 파일 사이즈를 현재 사용량 이상으로 사전 확보하면 추가 자동 증가가 발생하지 않음. SHRINK는 재증가 반복이므로 배제.
+              - 자동 증가 자체를 막는 것은 불가능<br>
+              - 증가 빈도를 0으로 만드는 것이 목표<br>
+              - 파일 사이즈를 현재 사용량 이상으로 사전 확보하면 추가 자동 증가가 발생하지 않음<br>
             </div>
           </div>
           <div class="incident-flow">
@@ -1196,11 +1229,15 @@
           <div class="incident-why">
             <div class="incident-why-box trigger">
               <div class="incident-why-label red">⚠ 왜 이게 문제라 판단했나</div>
-              Lock Waiting이 30건→576건으로 19배 폭증. MaxGauge Blocking 뷰에서 블로커 세션이 ALTER TABLE 수행 중임을 즉시 확인. DDL은 Object 레벨 잠금을 유지하므로 해당 테이블 접근 세션 전체가 대기하는 것.
+              - Lock Waiting이 30건→576건으로 19배 폭증<br>
+              - MaxGauge Blocking 뷰에서 블로커 세션이 ALTER TABLE 수행 중임을 즉시 확인<br>
+              - DDL은 Object 레벨 잠금을 유지하므로 해당 테이블 접근 세션 전체 대기 발생
             </div>
             <div class="incident-why-box action">
               <div class="incident-why-label green">✓ 왜 이 방법으로 해결했나</div>
-              가장 빠른 해소는 DDL 세션 종료. 고객사 담당자와 즉시 협의 후 작업 중단. 재발 방지로 ALTER TABLE은 서비스 트래픽이 없는 시간대에 수행하도록 운영 정책 수립. 추가로 수행 전 해당 테이블 접근 세션 여부를 사전 확인하는 체크리스트를 제공하여 유사 상황 예방 체계 구성.
+              - 고객사 담당자와 즉시 협의 후 작업 중단<br>
+              - 재발 방지로 ALTER TABLE은 서비스 트래픽이 없는 시간대에 수행하도록 운영 정책 수립<br>
+              - 추가로 수행 전 해당 테이블 접근 세션 여부를 사전 확인하는 체크리스트를 제공하여 유사 상황 예방 체계 구성
             </div>
           </div>
           <div class="incident-flow">
@@ -1223,11 +1260,14 @@
           <div class="incident-why">
             <div class="incident-why-box trigger">
               <div class="incident-why-label red">⚠ 왜 이게 문제라 판단했나</div>
-              Logical Reads 1,700만 건 SELECT 쿼리가 처리 지연되며 다른 세션 블로킹 유발. 인덱스 부재로 Full Scan 반복이 Row Lock을 과다 발생시키고, 이것이 Table 레벨로 에스컬레이션되는 구조적 원인 확인.
+              - Logical Reads 1,700만 건 SELECT 쿼리가 처리 지연되며 다른 세션 블로킹 유발<br>
+              - 인덱스 부재로 Full Scan 반복이 Row Lock을 과다 발생시키고 이것이 Table 레벨로 에스컬레이션되는 구조적 원인 확인<br>
+              <br>
             </div>
             <div class="incident-why-box action">
               <div class="incident-why-label green">✓ 왜 이 방법으로 접근했나</div>
-              Lock Escalation 자체보다 근본 원인인 Full Scan + 대량 Lock 발생 구조 개선이 필요. 인덱스 최적화로 처리 범위를 줄이고, 대용량 배치와 서비스 쿼리의 시간대를 분리하는 방향으로 권고.
+              - Lock Escalation 자체보다 근본 원인인 Full Scan + 대량 Lock 발생 구조 개선이 필요<br>
+              - 인덱스 최적화로 처리 범위를 줄이고 대용량 배치와 서비스 쿼리의 시간대를 분리하는 방향으로 권고<br>
             </div>
           </div>
           <div class="incident-flow">
@@ -1250,11 +1290,16 @@
           <div class="incident-why">
             <div class="incident-why-box trigger">
               <div class="incident-why-label red">⚠ 왜 이게 문제라 판단했나</div>
-              홈페이지 INSERT 세션 대기 급증. 단순 쿼리 문제가 아님을 의심하고 세션 대기 이벤트를 역방향으로 추적. log file sync → LGWR → log file parallel write 순으로 연쇄 구조를 확인. Redo I/O 자체가 병목임을 특정.
+              - 홈페이지 INSERT 세션 대기 급증<br>
+              - 단순 쿼리 문제가 아님을 의심하고 세션 대기 이벤트를 역방향으로 추적<br>
+              - log file sync → LGWR → log file parallel write 순으로 연쇄 구조를 확인<br>
+              - Redo I/O 자체가 병목임을 특정
             </div>
             <div class="incident-why-box action">
               <div class="incident-why-label green">✓ 한계와 배운 점</div>
-              병목 지점(log file parallel write)은 특정했으나 디스크 I/O 지표·alert log를 실시간으로 확보하지 못해 최종 원인 확정 불가. 이후 해당 지표들을 모니터링 수집 항목에 추가. OS 레벨 지표와 DB 대기 이벤트를 함께 봐야 한다는 것을 체감.
+              - 병목 지점(log file parallel write)은 특정했으나 디스크 I/O 지표·alert log를 실시간으로 확보하지 못해 최종 원인 확정 불가<br> 
+              - 이후 해당 지표들을 모니터링 수집 항목에 추가<br>
+              - OS 레벨 지표와 DB 대기 이벤트를 함께 봐야 한다는 것을 체감
             </div>
           </div>
           <div class="incident-flow">
