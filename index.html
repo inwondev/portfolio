@@ -1331,13 +1331,12 @@
 
       <div class="infra-card">
         <div class="infra-icon">// HA · MIGRATION</div>
-        <div class="infra-title">MSSQL AlwaysOn AG 이중화 구축</div>
+        <div class="infra-title">MSCS 기반 SQL Server Failover Cluster구축을 통한 HA 환경 구성</div>
         <div class="infra-env">2024.09  |  MSSQL / Windows Server / 2Node Cluster</div>
         <ul class="infra-steps">
           <li>Full Backup → Restore 방식 데이터 마이그레이션</li>
           <li>sp_help_revlogin으로 Login·SID 이관 및 정합성 검증</li>
           <li>AD 기반 2Node 도메인 조인 + Failover Cluster 구성</li>
-          <li>AlwaysOn AG 신규 구축 + Listener 구성</li>
           <li>Failover 테스트 및 서비스 전환 검증</li>
         </ul>
         <div class="infra-outcome">SPOF 제거 · 자동 Failover 구성 · 서비스 중단 최소화</div>
